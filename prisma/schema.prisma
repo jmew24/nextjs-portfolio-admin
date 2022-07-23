@@ -1,0 +1,210 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  firstName String?   @map("first_name")
+  lastName  String?   @map("flast_name")
+  websites  Website[]
+
+  @@map("user")
+}
+
+model Website {
+  id            Int             @id @default(autoincrement())
+  createdAt     DateTime        @default(now()) @map("created_at")
+  url           String          @unique
+  title         String
+  public        Boolean         @default(false)
+  ownerId       Int?            @map("owner_id")
+  owner         User?           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  Certification Certification[]
+  Eduction      Eduction[]
+  Experience    Experience[]
+  Gallery       Gallery[]
+  General       General[]
+  Project       Project[]
+  Skill         Skill[]
+
+  @@map("website")
+}
+
+model CertificationBadge {
+  id              Int            @id @default(autoincrement())
+  createdAt       DateTime       @default(now()) @map("created_at")
+  identifier      String         @unique
+  title           String
+  image           String
+  certificationId Int?           @map("certification_id")
+  certification   Certification? @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+
+  @@map("certificationbadge")
+}
+
+model Certification {
+  id           Int                  @id @default(autoincrement())
+  createdAt    DateTime             @default(now()) @map("created_at")
+  identifier   String               @unique
+  displayTitle String
+  title        String
+  link         String
+  type         Int                  @default(1)
+  websiteId    Int?                 @map("website_id")
+  website      Website?             @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  badges       CertificationBadge[]
+
+  @@map("certification")
+}
+
+model Eduction {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now()) @map("created_at")
+  identifier String   @unique
+  title      String
+  schoolName String
+  credit     String
+  graduated  String
+  websiteId  Int?     @map("website_id")
+  website    Website? @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@map("education")
+}
+
+model ExperienceRole {
+  id           Int         @id @default(autoincrement())
+  createdAt    DateTime    @default(now()) @map("created_at")
+  identifier   String      @unique
+  title        String
+  description  String
+  experienceId Int?        @map("experience_id")
+  experience   Experience? @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@map("expierencerole")
+}
+
+model Experience {
+  id           Int              @id @default(autoincrement())
+  createdAt    DateTime         @default(now()) @map("created_at")
+  identifier   String           @unique
+  displayTitle String
+  title        String
+  subtitle     String
+  when         String
+  type         Int              @default(1)
+  websiteId    Int?             @map("website_id")
+  website      Website?         @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  roles        ExperienceRole[]
+
+  @@map("experience")
+}
+
+model GalleryImage {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now()) @map("created_at")
+  identifier  String   @unique
+  file        String
+  description String
+  galleryId   Int?     @map("gallery_id")
+  gallery     Gallery? @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+
+  @@map("galleryimage")
+}
+
+model Gallery {
+  id         Int            @id @default(autoincrement())
+  createdAt  DateTime       @default(now()) @map("created_at")
+  identifier String         @unique
+  title      String
+  type       Int            @default(1)
+  websiteId  Int?           @map("website_id")
+  website    Website?       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  images     GalleryImage[]
+
+  @@map("gallery")
+}
+
+model GeneralSocial {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now()) @map("created_at")
+  identifier String   @unique
+  name       String
+  url        String
+  className  String
+  generalId  Int?     @map("general_id")
+  general    General? @relation(fields: [generalId], references: [id], onDelete: Cascade)
+
+  @@map("generalsocial")
+}
+
+model General {
+  id              Int             @id @default(autoincrement())
+  createdAt       DateTime        @default(now()) @map("created_at")
+  identifier      String          @unique
+  year            String
+  name            String
+  occupation      String
+  description     String
+  image           String
+  bio             String
+  email           String
+  personalWebsite String
+  resumeDownload  String
+  region          String
+  province        String
+  country         String
+  websiteId       Int?            @map("website_id")
+  website         Website?        @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  socials         GeneralSocial[]
+
+  @@map("general")
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now()) @map("created_at")
+  identifier  String   @unique
+  title       String
+  description String
+  image       String
+  url         String
+  type        Int      @default(1)
+  websiteId   Int?     @map("website_id")
+  website     Website? @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@map("project")
+}
+
+model SkillLanguage {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now()) @map("created_at")
+  identifier String   @unique
+  title      String
+  list       String[]
+  skillId    Int?     @map("skill_id")
+  skill      Skill?   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@map("skilllanguage")
+}
+
+model Skill {
+  id            Int             @id @default(autoincrement())
+  createdAt     DateTime        @default(now()) @map("created_at")
+  identifier    String          @unique
+  title         String
+  type          Int             @default(1)
+  list          String[]
+  websiteId     Int?            @map("website_id")
+  website       Website?        @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  SkillLanguage SkillLanguage[]
+
+  @@map("skill")
+}
