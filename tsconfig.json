@@ -16,7 +16,7 @@
 		"incremental": true
 	},
 	"exclude": ["node_modules"],
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "pages/preview/src/Components/LightBox.jsx"],
 	"ts-node": {
 		"compilerOptions": {
 			"module": "commonjs"

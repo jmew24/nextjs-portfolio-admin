@@ -35,7 +35,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
 };
 
 async function publishWebsite(id: number): Promise<void> {
-	await fetch(`/api/publish/${id}`, {
+	await fetch(`/api/website/publish/${id}`, {
 		method: 'PUT',
 	});
 	await Router.push('/');
@@ -79,11 +79,16 @@ const Website: React.FC<WebsiteProps> = (props) => {
 					By {authorName}
 				</p>
 				<ReactMarkdown children={props.url} />
-				{!props.public && userHasValidSession && websiteBelongsToUser && (
-					<button onClick={() => publishWebsite(props.id)}>Publish</button>
+				{(userHasValidSession && websiteBelongsToUser) ?? (
+					<>
+						<button onClick={() => Router.push('/website/update/[id]', `/website/update/${props.id}`)}>Edit</button>
+						<button onClick={() => deleteWebsite(props.id)}>Delete</button>
+						{!props.public ?? <button onClick={() => publishWebsite(props.id)}>Publish</button>}
+					</>
 				)}
-				{userHasValidSession && websiteBelongsToUser && <button onClick={() => deleteWebsite(props.id)}>Delete</button>}
-				<button onClick={() => Router.push('/preview/[id]', `/preview/${props.id}`)}>GoTo Preview</button>
+				<button onClick={() => Router.push('/website/preview/[id]', `/website/preview/${props.id}`)}>
+					GoTo Preview
+				</button>
 			</div>
 			<style jsx>{`
 				.page {

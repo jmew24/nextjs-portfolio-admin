@@ -3,8 +3,8 @@ import prisma from '../../../lib/prisma';
 import { getSession } from 'next-auth/react';
 
 // POST /api/website
-// Required fields in body: title
-// Optional fields in body: content
+// Required fields in body: url, title, isPublic
+// Optional fields in body:
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
 	const { url, title, isPublic } = req.body;
 

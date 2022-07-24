@@ -20,20 +20,20 @@ model User {
 }
 
 model Website {
-  id            Int             @id @default(autoincrement())
-  createdAt     DateTime        @default(now()) @map("created_at")
-  url           String          @unique
-  title         String
-  public        Boolean         @default(false)
-  ownerId       Int?            @map("owner_id")
-  owner         User?           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  Certification Certification[]
-  Eduction      Eduction[]
-  Experience    Experience[]
-  Gallery       Gallery[]
-  General       General[]
-  Project       Project[]
-  Skill         Skill[]
+  id             Int             @id @default(autoincrement())
+  createdAt      DateTime        @default(now()) @map("created_at")
+  url            String          @unique
+  title          String
+  public         Boolean         @default(false)
+  ownerId        Int?            @map("owner_id")
+  owner          User?           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  certifications Certification[]
+  eductions      Eduction[]
+  experiences    Experience[]
+  galleries      Gallery[]
+  generals       General[]
+  projects       Project[]
+  skills         Skill[]
 
   @@map("website")
 }
@@ -41,7 +41,6 @@ model Website {
 model CertificationBadge {
   id              Int            @id @default(autoincrement())
   createdAt       DateTime       @default(now()) @map("created_at")
-  identifier      String         @unique
   title           String
   image           String
   certificationId Int?           @map("certification_id")
@@ -53,11 +52,10 @@ model CertificationBadge {
 model Certification {
   id           Int                  @id @default(autoincrement())
   createdAt    DateTime             @default(now()) @map("created_at")
-  identifier   String               @unique
   displayTitle String
   title        String
   link         String
-  type         Int                  @default(1)
+  type         Int                  @default(0)
   websiteId    Int?                 @map("website_id")
   website      Website?             @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   badges       CertificationBadge[]
@@ -82,7 +80,6 @@ model Eduction {
 model ExperienceRole {
   id           Int         @id @default(autoincrement())
   createdAt    DateTime    @default(now()) @map("created_at")
-  identifier   String      @unique
   title        String
   description  String
   experienceId Int?        @map("experience_id")
@@ -94,12 +91,11 @@ model ExperienceRole {
 model Experience {
   id           Int              @id @default(autoincrement())
   createdAt    DateTime         @default(now()) @map("created_at")
-  identifier   String           @unique
   displayTitle String
   title        String
   subtitle     String
   when         String
-  type         Int              @default(1)
+  type         Int              @default(0)
   websiteId    Int?             @map("website_id")
   website      Website?         @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   roles        ExperienceRole[]
@@ -110,7 +106,6 @@ model Experience {
 model GalleryImage {
   id          Int      @id @default(autoincrement())
   createdAt   DateTime @default(now()) @map("created_at")
-  identifier  String   @unique
   file        String
   description String
   galleryId   Int?     @map("gallery_id")
@@ -120,27 +115,25 @@ model GalleryImage {
 }
 
 model Gallery {
-  id         Int            @id @default(autoincrement())
-  createdAt  DateTime       @default(now()) @map("created_at")
-  identifier String         @unique
-  title      String
-  type       Int            @default(1)
-  websiteId  Int?           @map("website_id")
-  website    Website?       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  images     GalleryImage[]
+  id        Int            @id @default(autoincrement())
+  createdAt DateTime       @default(now()) @map("created_at")
+  title     String
+  type      Int            @default(0)
+  websiteId Int?           @map("website_id")
+  website   Website?       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  images    GalleryImage[]
 
   @@map("gallery")
 }
 
 model GeneralSocial {
-  id         Int      @id @default(autoincrement())
-  createdAt  DateTime @default(now()) @map("created_at")
-  identifier String   @unique
-  name       String
-  url        String
-  className  String
-  generalId  Int?     @map("general_id")
-  general    General? @relation(fields: [generalId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  name      String
+  url       String
+  className String
+  generalId Int?     @map("general_id")
+  general   General? @relation(fields: [generalId], references: [id], onDelete: Cascade)
 
   @@map("generalsocial")
 }
@@ -148,19 +141,18 @@ model GeneralSocial {
 model General {
   id              Int             @id @default(autoincrement())
   createdAt       DateTime        @default(now()) @map("created_at")
-  identifier      String          @unique
   year            String
   name            String
   occupation      String
   description     String
-  image           String
+  image           String?
   bio             String
-  email           String
-  personalWebsite String
-  resumeDownload  String
-  region          String
-  province        String
-  country         String
+  email           String?
+  personalWebsite String?
+  resumeDownload  String?
+  region          String?
+  province        String?
+  country         String?
   websiteId       Int?            @map("website_id")
   website         Website?        @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   socials         GeneralSocial[]
@@ -171,12 +163,11 @@ model General {
 model Project {
   id          Int      @id @default(autoincrement())
   createdAt   DateTime @default(now()) @map("created_at")
-  identifier  String   @unique
   title       String
   description String
   image       String
   url         String
-  type        Int      @default(1)
+  type        Int      @default(0)
   websiteId   Int?     @map("website_id")
   website     Website? @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 
@@ -184,27 +175,25 @@ model Project {
 }
 
 model SkillLanguage {
-  id         Int      @id @default(autoincrement())
-  createdAt  DateTime @default(now()) @map("created_at")
-  identifier String   @unique
-  title      String
-  list       String[]
-  skillId    Int?     @map("skill_id")
-  skill      Skill?   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  title     String
+  list      String[]
+  Skill     Skill[]
 
   @@map("skilllanguage")
 }
 
 model Skill {
-  id            Int             @id @default(autoincrement())
-  createdAt     DateTime        @default(now()) @map("created_at")
-  identifier    String          @unique
-  title         String
-  type          Int             @default(1)
-  list          String[]
-  websiteId     Int?            @map("website_id")
-  website       Website?        @relation(fields: [websiteId], references: [id], onDelete: Cascade)
-  SkillLanguage SkillLanguage[]
+  id              Int            @id @default(autoincrement())
+  createdAt       DateTime       @default(now()) @map("created_at")
+  title           String
+  type            Int            @default(0)
+  list            String[]
+  websiteId       Int?           @map("website_id")
+  skillLanguageId Int?           @map("skill_language_id")
+  languages       SkillLanguage? @relation(fields: [skillLanguageId], references: [id])
+  website         Website?       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 
   @@map("skill")
 }

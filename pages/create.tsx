@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Layout from '../components/Layout';
 import Router from 'next/router';
 
-const Create: React.FC = () => {
+const Create = () => {
 	const [url, setUrl] = useState('');
 	const [title, setTitle] = useState('');
 	const [isPublic, setIsPublic] = useState(false);

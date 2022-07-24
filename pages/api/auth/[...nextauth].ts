@@ -1,9 +1,7 @@
 import { NextApiHandler } from "next";
 import NextAuth from "next-auth";
-import Providers from "next-auth/providers";
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import GitHubProvider from 'next-auth/providers/github'
-import EmailProvider from 'next-auth/providers/email'
 import prisma from '../../../lib/prisma'
 
 
