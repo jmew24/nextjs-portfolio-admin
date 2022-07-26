@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Router from 'next/router';
 
-import { WebsiteProps } from '../components/Preview';
+import { WebsiteProps } from '../common/types/web';
+
 import Layout from '../components/Layout';
 
 const Create: React.FC<{ website: WebsiteProps }> = ({ website }) => {
-	const [websiteSettings, setWebsiteSettings] = useState(website);
+	const [websiteSettings, setWebsiteSettings] = useState({} as WebsiteProps);
+
+	useEffect(() => {
+		setWebsiteSettings(website);
+	}, [website]);
 
 	const submitData = async (e: React.SyntheticEvent) => {
 		e.preventDefault();
 		try {
-			await fetch(`/api/website/update/${website.id}`, {
+			await fetch(`/api/website/update/${websiteSettings.id}`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(websiteSettings),
@@ -20,6 +25,14 @@ const Create: React.FC<{ website: WebsiteProps }> = ({ website }) => {
 			console.error(error);
 		}
 	};
+
+	if (!websiteSettings) {
+		return (
+			<Layout>
+				<div>Loading ...</div>
+			</Layout>
+		);
+	}
 
 	return (
 		<Layout>
@@ -34,23 +47,23 @@ const Create: React.FC<{ website: WebsiteProps }> = ({ website }) => {
 							onChange={(e) => setWebsiteSettings({ ...websiteSettings, url: e.target.value })}
 							placeholder='wwww.url.com'
 							type='text'
-							value={website.url}
+							value={websiteSettings.url}
 						/>
 						<input
 							onChange={(e) => setWebsiteSettings({ ...websiteSettings, title: e.target.value })}
 							placeholder='Title'
 							type='text'
-							value={website.title}
+							value={websiteSettings.title}
 						/>
 						<input
 							onChange={() => setWebsiteSettings({ ...websiteSettings, public: !websiteSettings.public })}
 							type='checkbox'
-							checked={website.public}
+							checked={websiteSettings.public}
 						/>
 					</section>
 
-					<input disabled={!website.url || !website.title} type='submit' value='Save' />
-					<a className='back' href='#' onClick={() => Router.push('/website/[id]', `/website/${website.id}`)}>
+					<input disabled={!websiteSettings.url || !websiteSettings.title} type='submit' value='Save' />
+					<a className='back' href='#' onClick={() => Router.push('/website/[id]', `/website/${websiteSettings.id}`)}>
 						or Cancel
 					</a>
 				</form>

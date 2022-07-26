@@ -7,7 +7,7 @@
 	"author": "",
 	"scripts": {
 		"dev": "next",
-		"build": "next build",
+		"build": "rimraf .next && next build",
 		"start": "next start",
 		"pull": "npx prisma db pull",
 		"studio": "npx prisma generate & npx prisma format & npx prisma studio",
@@ -18,15 +18,20 @@
 	"dependencies": {
 		"@next-auth/prisma-adapter": "1.0.4",
 		"@prisma/client": "4.1.0",
+		"bcrypt": "^5.0.1",
+		"jsonwebtoken": "^8.5.1",
 		"next": "12.2.3",
 		"next-auth": "4.10.2",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
+		"react-image-lightbox": "^5.1.4",
 		"react-markdown": "8.0.3",
 		"recoil": "^0.7.4"
 	},
 	"devDependencies": {
 		"@netlify/plugin-nextjs": "^4.13.0",
+		"@types/bcrypt": "^5.0.0",
+		"@types/jsonwebtoken": "^8.5.8",
 		"@types/next-auth": "3.13.0",
 		"@types/node": "^16.11.45",
 		"@types/react": "18.0.15",

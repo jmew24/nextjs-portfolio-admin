@@ -1,22 +1,31 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/react';
-import prisma from '../../../lib/prisma';
+import prisma from '../../../common/get-prisma-client';
+import { getServerAuthSession } from '../../../common/get-server-session';
 
 // DELETE /api/website/:id
-export default async function handle(req: NextApiRequest, res: NextApiResponse) {
+export default async function handle(context) {
+	const { req, res } = context;
+	const session = await getServerAuthSession(context);
 	const websiteId = req.query.id;
 
-	const session = await getSession({ req });
+	if (!websiteId || typeof websiteId !== 'string') {
+		res.status(400).send({ message: 'Invalid website id' });
+		return;
+	}
 
 	if (req.method === 'DELETE') {
-		if (session) {
-			const post = await prisma.website.delete({
-				where: { id: Number(websiteId) },
-			});
-			res.json(post);
-		} else {
+		if (!session) {
 			res.status(401).send({ message: 'Unauthorized' });
 		}
+
+		if (!websiteId || typeof websiteId !== 'string') {
+			res.status(400).send({ message: 'Invalid website id' });
+			return;
+		}
+
+		const post = await prisma.website.delete({
+			where: { id: websiteId },
+		});
+		res.json(post);
 	} else {
 		throw new Error(`The HTTP ${req.method} method is not supported at this route.`);
 	}

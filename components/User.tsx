@@ -1,14 +1,8 @@
 import React from 'react';
 import Router from 'next/router';
-import Website, { WebsiteProps } from './Website';
+import Website from './Website';
 
-export type UserProps = {
-	id: number;
-	email: string;
-	firstName: string;
-	lastName: boolean;
-	websites: WebsiteProps[] | null;
-};
+import { UserProps } from '../common/types/web';
 
 const UserPage: React.FC<{ user: UserProps }> = ({ user }) => {
 	const authorName = user.firstName

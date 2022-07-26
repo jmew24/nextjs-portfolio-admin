@@ -1,24 +1,76 @@
 import React from 'react';
 import { GetServerSideProps } from 'next';
-import Layout from '../../components/Layout';
-import prisma from '../../lib/prisma';
-import { useSession } from 'next-auth/react';
-import { UserProps } from '../../components/User';
-import Website from '../../components/Website';
+import { Session } from 'next-auth';
+import { getSession } from 'next-auth/react';
 
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+import { UserProps } from '../../common/types/web';
+import prisma from '../../common/get-prisma-client';
+import { isAdmin } from '../../common/get-user-access';
+
+import Website from '../../components/Website';
+import Layout from '../../components/Layout';
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+	const {
+		res,
+		params: { id },
+	} = context;
+	const session = await getSession(context);
+
+	if (!id || typeof id !== 'string') {
+		res.writeHead(400).end('Invalid website id');
+		return;
+	}
+
+	if (isAdmin(session)) {
+		const user = await prisma.user.findUnique({
+			where: {
+				id: id,
+			},
+			select: {
+				id: true,
+				email: true,
+				firstName: true,
+				lastName: true,
+				accessLevel: true,
+				websites: {
+					select: {
+						id: true,
+						title: true,
+						url: true,
+						public: true,
+						owner: {
+							select: {
+								id: true,
+								email: true,
+								firstName: true,
+								lastName: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		return {
+			props: { user, session },
+		};
+	}
+
 	const user = await prisma.user.findUnique({
 		where: {
-			id: Number(params?.id) || -1,
+			id: id,
 		},
 		select: {
 			id: true,
 			email: true,
 			firstName: true,
 			lastName: true,
+			accessLevel: true,
 			websites: {
 				where: {
 					public: true,
+					OR: [{ owner: { email: session.user.email } }],
 				},
 				select: {
 					id: true,
@@ -37,20 +89,25 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
 			},
 		},
 	});
+
 	return {
-		props: user,
+		props: { user, session },
 	};
 };
 
-const User: React.FC<UserProps> = (props) => {
-	const { status } = useSession();
-	const authorName = props.firstName
-		? props.lastName
-			? `${props.firstName} ${props.lastName}`
-			: props.firstName
+type Props = {
+	user: UserProps;
+	session: Session;
+};
+
+const User: React.FC<Props> = ({ user, session }) => {
+	const authorName = user.firstName
+		? user.lastName
+			? `${user.firstName} ${user.lastName}`
+			: user.firstName
 		: 'Unknown owner';
 
-	if (status === 'loading') {
+	if (!user || session.status === 'unauthenticated') {
 		return <div>Authenticating ...</div>;
 	}
 
@@ -61,7 +118,7 @@ const User: React.FC<UserProps> = (props) => {
 				<div className='page'>
 					<h1>Websites</h1>
 					<main>
-						{props?.websites?.map((website) => (
+						{user.websites?.map((website) => (
 							<div key={website.id} className='block'>
 								<Website website={website} />
 							</div>

@@ -1,24 +1,41 @@
 import React, { useState } from 'react';
-import Layout from '../components/Layout';
 import Router from 'next/router';
 
+import { WebsiteProps } from '../common/types/web';
+
+import Layout from '../components/Layout';
+
 const Create = () => {
-	const [url, setUrl] = useState('');
-	const [title, setTitle] = useState('');
-	const [isPublic, setIsPublic] = useState(false);
+	const [state, setState] = useState({ url: '', title: '', isPublic: false });
+	const [errorState, setErrorState] = useState({ url: { invalid: false, message: '' } });
 
 	const submitData = async (e: React.SyntheticEvent) => {
 		e.preventDefault();
 		try {
-			const body = { url, title, isPublic };
-			await fetch(`/api/website`, {
+			const response = await fetch(`/api/website`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(body),
+				body: JSON.stringify(state),
 			});
-			await Router.push('/websites');
+			if (response.status === 200) {
+				const data = (await response.json()) as WebsiteProps;
+				if (data) {
+					Router.push('/website/[id]', `/website/${data.id}`);
+				}
+			} else {
+				const data = await response.json();
+				setErrorState((prevState) => ({ ...prevState, url: { invalid: true, message: data?.message } }));
+			}
 		} catch (error) {
 			console.error(error);
+		}
+	};
+
+	const urlError = () => {
+		if (errorState.url.invalid) {
+			return <span className='error'>(Error: You must select a unique url)</span>;
+		} else {
+			return <></>;
 		}
 	};
 
@@ -27,19 +44,40 @@ const Create = () => {
 			<div>
 				<form onSubmit={submitData}>
 					<h1>New Website</h1>
+					<label htmlFor='url'>Url: {urlError()}</label>
 					<input
-						autoFocus
-						onChange={(e) => setUrl(e.target.value)}
+						id='url'
+						onChange={(e) => {
+							setState((prevState) => ({ ...prevState, url: e.target.value }));
+							if (errorState.url.invalid)
+								setErrorState((prevState) => ({ ...prevState, url: { invalid: false, message: '' } }));
+						}}
 						placeholder='wwww.url.com'
 						type='text'
-						value={url}
+						value={state.url}
+						autoFocus
 					/>
-					<input onChange={(e) => setTitle(e.target.value)} placeholder='Title' type='text' value={title} />
-					<input onChange={() => setIsPublic((oldValue) => !oldValue)} type='checkbox' checked={isPublic} />
-					<input disabled={!url || !title} type='submit' value='Create' />
-					<a className='back' href='#' onClick={() => Router.push('/')}>
-						or Cancel
-					</a>
+					<label htmlFor='title'>Title: </label>
+					<input
+						id='title'
+						onChange={(e) => setState((prevState) => ({ ...prevState, title: e.target.value }))}
+						placeholder='Title'
+						type='text'
+						value={state.title}
+					/>
+					<label htmlFor='isPublic'>IsPublic: </label>
+					<input
+						id='isPublic'
+						onChange={() => setState((prevState) => ({ ...prevState, isPublic: !prevState.isPublic }))}
+						type='checkbox'
+						checked={state.isPublic}
+					/>
+					<footer>
+						<input disabled={!state.url || !state.title} type='submit' value='Create' />
+						<a className='back' href='#' onClick={() => Router.push('/')}>
+							or Cancel
+						</a>
+					</footer>
 				</form>
 			</div>
 			<style jsx>{`
@@ -64,10 +102,19 @@ const Create = () => {
 					background: #ececec;
 					border: 0;
 					padding: 1rem 2rem;
+					cursor: pointer;
+				}
+
+				footer {
+					padding: 2rem 0rem;
 				}
 
 				.back {
 					margin-left: 1rem;
+				}
+
+				.error {
+					color: darkred;
 				}
 			`}</style>
 		</Layout>

@@ -9,23 +9,69 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  firstName String?   @map("first_name")
-  lastName  String?   @map("flast_name")
-  websites  Website[]
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("user")
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String?     @unique
+  emailVerified DateTime?   @map("email_verified")
+  image         String?
+  firstName     String?     @map("first_name")
+  lastName      String?     @map("flast_name")
+  createdAt     DateTime    @default(now())
+  password      String?
+  updatedAt     DateTime    @default(now()) @updatedAt
+  accessLevel   AccessLevel @default(CLIENT) @map("access_level")
+  accounts      Account[]
+  sessions      Session[]
+  websites      Website[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
 }
 
 model Website {
-  id             Int             @id @default(autoincrement())
+  id             String          @id @default(cuid())
   createdAt      DateTime        @default(now()) @map("created_at")
   url            String          @unique
   title          String
   public         Boolean         @default(false)
-  ownerId        Int?            @map("owner_id")
+  ownerId        String?         @map("owner_id")
   owner          User?           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   certifications Certification[]
   eductions      Eduction[]
@@ -43,20 +89,22 @@ model CertificationBadge {
   createdAt       DateTime       @default(now()) @map("created_at")
   title           String
   image           String
-  certificationId Int?           @map("certification_id")
+  certificationId String?        @map("certification_id")
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
   certification   Certification? @relation(fields: [certificationId], references: [id], onDelete: Cascade)
 
   @@map("certificationbadge")
 }
 
 model Certification {
-  id           Int                  @id @default(autoincrement())
+  id           String               @id @default(cuid())
   createdAt    DateTime             @default(now()) @map("created_at")
   displayTitle String
   title        String
   link         String
   type         Int                  @default(0)
-  websiteId    Int?                 @map("website_id")
+  websiteId    String?              @map("website_id")
+  updatedAt    DateTime             @default(now()) @updatedAt @map("updated_at")
   website      Website?             @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   badges       CertificationBadge[]
 
@@ -64,39 +112,41 @@ model Certification {
 }
 
 model Eduction {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(cuid())
   createdAt  DateTime @default(now()) @map("created_at")
-  identifier String   @unique
   title      String
   schoolName String
   credit     String
   graduated  String
-  websiteId  Int?     @map("website_id")
+  websiteId  String?  @map("website_id")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
   website    Website? @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 
   @@map("education")
 }
 
 model ExperienceRole {
-  id           Int         @id @default(autoincrement())
+  id           String      @id @default(cuid())
   createdAt    DateTime    @default(now()) @map("created_at")
   title        String
   description  String
-  experienceId Int?        @map("experience_id")
+  experienceId String?     @map("experience_id")
+  updatedAt    DateTime    @default(now()) @updatedAt @map("updated_at")
   experience   Experience? @relation(fields: [experienceId], references: [id], onDelete: Cascade)
 
   @@map("expierencerole")
 }
 
 model Experience {
-  id           Int              @id @default(autoincrement())
+  id           String           @id @default(cuid())
   createdAt    DateTime         @default(now()) @map("created_at")
   displayTitle String
   title        String
   subtitle     String
   when         String
   type         Int              @default(0)
-  websiteId    Int?             @map("website_id")
+  websiteId    String?          @map("website_id")
+  updatedAt    DateTime         @default(now()) @updatedAt @map("updated_at")
   website      Website?         @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   roles        ExperienceRole[]
 
@@ -104,22 +154,24 @@ model Experience {
 }
 
 model GalleryImage {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(cuid())
   createdAt   DateTime @default(now()) @map("created_at")
   file        String
   description String
-  galleryId   Int?     @map("gallery_id")
+  galleryId   String?  @map("gallery_id")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
   gallery     Gallery? @relation(fields: [galleryId], references: [id], onDelete: Cascade)
 
   @@map("galleryimage")
 }
 
 model Gallery {
-  id        Int            @id @default(autoincrement())
+  id        String         @id @default(cuid())
   createdAt DateTime       @default(now()) @map("created_at")
   title     String
   type      Int            @default(0)
-  websiteId Int?           @map("website_id")
+  websiteId String?        @map("website_id")
+  updatedAt DateTime       @default(now()) @updatedAt @map("updated_at")
   website   Website?       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   images    GalleryImage[]
 
@@ -132,14 +184,15 @@ model GeneralSocial {
   name      String
   url       String
   className String
-  generalId Int?     @map("general_id")
+  generalId String?  @map("general_id")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
   general   General? @relation(fields: [generalId], references: [id], onDelete: Cascade)
 
   @@map("generalsocial")
 }
 
 model General {
-  id              Int             @id @default(autoincrement())
+  id              String          @id @default(cuid())
   createdAt       DateTime        @default(now()) @map("created_at")
   year            String
   name            String
@@ -153,7 +206,8 @@ model General {
   region          String?
   province        String?
   country         String?
-  websiteId       Int?            @map("website_id")
+  websiteId       String?         @map("website_id")
+  updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at")
   website         Website?        @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   socials         GeneralSocial[]
 
@@ -161,14 +215,15 @@ model General {
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(cuid())
   createdAt   DateTime @default(now()) @map("created_at")
   title       String
   description String
   image       String
   url         String
   type        Int      @default(0)
-  websiteId   Int?     @map("website_id")
+  websiteId   String?  @map("website_id")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
   website     Website? @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 
   @@map("project")
@@ -185,15 +240,23 @@ model SkillLanguage {
 }
 
 model Skill {
-  id              Int            @id @default(autoincrement())
+  id              String         @id @default(cuid())
   createdAt       DateTime       @default(now()) @map("created_at")
   title           String
   type            Int            @default(0)
   list            String[]
-  websiteId       Int?           @map("website_id")
+  websiteId       String?        @map("website_id")
   skillLanguageId Int?           @map("skill_language_id")
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at")
   languages       SkillLanguage? @relation(fields: [skillLanguageId], references: [id])
   website         Website?       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 
   @@map("skill")
+}
+
+enum AccessLevel {
+  ROOT
+  ADMIN
+  CLIENT
+  GUEST
 }

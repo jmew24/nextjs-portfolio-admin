@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { signOut, useSession } from 'next-auth/react';
 
+import { UserProps } from '../common/types/web';
+
 const Header: React.FC = () => {
 	const router = useRouter();
+	const { data: session, status } = useSession();
+	const [userId, setUserId] = useState('');
 	const isActive: (pathname: string) => boolean = (pathname) => router.pathname === pathname;
 
-	const { data: session, status } = useSession();
+	useEffect(() => {
+		if (session && session.user) {
+			const user = session.user as UserProps;
+			setUserId(user.id);
+		}
+	}, [session]);
 
 	let left = (
 		<div className='left'>
@@ -42,34 +51,6 @@ const Header: React.FC = () => {
 	let right = null;
 
 	if (status === 'loading') {
-		left = (
-			<div className='left'>
-				<Link href='/'>
-					<a className='bold' data-active={isActive('/')}>
-						Website
-					</a>
-				</Link>
-				<style jsx>{`
-					.bold {
-						font-weight: bold;
-					}
-
-					a {
-						text-decoration: none;
-						color: #000;
-						display: inline-block;
-					}
-
-					.left a[data-active='true'] {
-						color: gray;
-					}
-
-					a + a {
-						margin-left: 1rem;
-					}
-				`}</style>
-			</div>
-		);
 		right = (
 			<div className='right'>
 				<p>Validating session ...</p>
@@ -86,7 +67,7 @@ const Header: React.FC = () => {
 		right = (
 			<div className='right'>
 				<Link href='/api/auth/signin'>
-					<a data-active={isActive('/signup')}>Log in</a>
+					<a data-active={isActive('/api/auth/signin')}>Log in</a>
 				</Link>
 				<style jsx>{`
 					a {
@@ -111,45 +92,19 @@ const Header: React.FC = () => {
 				`}</style>
 			</div>
 		);
-	}
-
-	if (session) {
-		left = (
-			<div className='left'>
-				<Link href='/'>
-					<a className='bold' data-active={isActive('/')}>
-						Website
-					</a>
-				</Link>
-				<Link href='/websites'>
-					<a data-active={isActive('/websites')}>My websites</a>
-				</Link>
-				<style jsx>{`
-					.bold {
-						font-weight: bold;
-					}
-
-					a {
-						text-decoration: none;
-						color: #000;
-						display: inline-block;
-					}
-
-					.left a[data-active='true'] {
-						color: gray;
-					}
-
-					a + a {
-						margin-left: 1rem;
-					}
-				`}</style>
-			</div>
-		);
+	} else if (session) {
 		right = (
 			<div className='right'>
 				<p>
 					{session.user.name} ({session.user.email})
 				</p>
+				{userId && (
+					<Link href={`/user/${userId}`}>
+						<button disabled={isActive(`/user/${userId}`)}>
+							<a data-active={isActive(`/user/${userId}`)}>My websites</a>
+						</button>
+					</Link>
+				)}
 				<Link href='/create'>
 					<button>
 						<a>New website</a>
@@ -202,6 +157,21 @@ const Header: React.FC = () => {
 					display: flex;
 					padding: 2rem;
 					align-items: center;
+				}
+
+				button:disabled {
+					cursor: not-allowed;
+					pointer-events: all !important;
+				}
+
+				button:disabled a {
+					cursor: not-allowed;
+					pointer-events: all !important;
+				}
+
+				a:disabled {
+					cursor: not-allowed;
+					pointer-events: all !important;
 				}
 			`}</style>
 		</nav>
