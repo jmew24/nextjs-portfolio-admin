@@ -1,7 +1,7 @@
 import { Session } from 'next-auth';
 
-import { AccessLevel } from '../common/types/web';
-import prisma from '../common/get-prisma-client';
+import { AccessLevel } from '../types/web';
+import prisma from './get-prisma-client';
 
 export const getUserAccess = async (session: Session) => {
 	if (!session) {

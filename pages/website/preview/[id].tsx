@@ -18,7 +18,7 @@ import Gallery from '../../../components/preview/Gallery';
 import Projects from '../../../components/preview/Projects';
 import Footer from '../../../components/preview/Footer';
 
-import prisma from '../../../common/get-prisma-client';
+import prisma from '../../../common/server/get-prisma-client';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
 	const {

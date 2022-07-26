@@ -14,7 +14,7 @@ const UserPage: React.FC<{ user: UserProps }> = ({ user }) => {
 	return (
 		<div onClick={() => Router.push('/user/[id]', `/user/${user.id}`)}>
 			<h2>{authorName}</h2>
-			<small>Email: {user.email}</small>
+			{user?.email ?? <small>Email: {user.email}</small>}
 
 			{user.websites.length > 0 ? (
 				<div className='page'>

@@ -1,5 +1,5 @@
-import prisma from '../../../common/get-prisma-client';
-import { getServerAuthSession } from '../../../common/get-server-session';
+import prisma from '../../../common/server/get-prisma-client';
+import { getServerAuthSession } from '../../../common/server/get-server-session';
 
 // DELETE /api/website/:id
 export default async function handle(context) {

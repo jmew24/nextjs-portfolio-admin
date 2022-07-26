@@ -1,17 +1,17 @@
 import React from 'react';
 import type { GetServerSideProps } from 'next';
 import { Session } from 'next-auth';
-import { getSession } from 'next-auth/react';
 
 import { UserProps } from '../common/types/web';
-import prisma from '../common/get-prisma-client';
-import { isAdmin } from '../common/get-user-access';
+import { getUsers } from '../common/server/prisma-user';
 
 import Layout from '../components/Layout';
 import User from '../components/User';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-	const session = await getSession(context);
+	const {
+		props: { users, session },
+	} = await getUsers(context);
 
 	if (!session) {
 		return {
@@ -21,70 +21,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 			},
 		};
 	}
-
-	if (isAdmin(session)) {
-		const users = await prisma.user.findMany({
-			select: {
-				id: true,
-				email: true,
-				firstName: true,
-				lastName: true,
-				accessLevel: true,
-				websites: {
-					select: {
-						id: true,
-						title: true,
-						url: true,
-						public: true,
-						owner: {
-							select: {
-								id: true,
-								email: true,
-								firstName: true,
-								lastName: true,
-							},
-						},
-					},
-				},
-			},
-		});
-
-		return {
-			props: { users, session },
-		};
-	}
-
-	const users = await prisma.user.findMany({
-		where: {
-			email: session?.user?.email,
-		},
-		select: {
-			id: true,
-			email: true,
-			firstName: true,
-			lastName: true,
-			websites: {
-				where: {
-					public: true,
-					OR: [{ owner: { email: session.user.email } }],
-				},
-				select: {
-					id: true,
-					title: true,
-					url: true,
-					public: true,
-					owner: {
-						select: {
-							id: true,
-							email: true,
-							firstName: true,
-							lastName: true,
-						},
-					},
-				},
-			},
-		},
-	});
 
 	return {
 		props: { users, session },

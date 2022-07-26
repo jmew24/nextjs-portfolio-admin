@@ -4,7 +4,8 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 
-import prisma from '../../../common/get-prisma-client';
+import { prisma } from '../../../common/server/get-prisma-client';
+import { getUserByCredentials } from '../../../common/server/prisma-user';
 
 export const getHash = async (password: string) => {
 	const salt = await bcrypt.genSalt();
@@ -31,27 +32,7 @@ export const authOptions: NextAuthOptions = {
 				password: { label: 'Password', type: 'password' },
 			},
 			async authorize(credentials, req) {
-				const user = await prisma.user.findFirst({
-					where: { email: credentials?.email },
-					select: {
-						id: true,
-						password: true,
-						email: true,
-						emailVerified: true,
-						image: true,
-						firstName: true,
-						lastName: true,
-						accessLevel: true,
-						websites: {
-							select: {
-								id: true,
-								url: true,
-								title: true,
-								public: true,
-							},
-						},
-					},
-				});
+				const user = await getUserByCredentials(credentials);
 
 				if (user) {
 					// Check if the password was correct
@@ -64,7 +45,6 @@ export const authOptions: NextAuthOptions = {
 				} else {
 					// If you return null then an error will be displayed advising the user to check their details.
 					return null;
-
 					// You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter
 				}
 			},

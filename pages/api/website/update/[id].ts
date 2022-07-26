@@ -1,5 +1,5 @@
-import prisma from '../../../../common/get-prisma-client';
-import { getServerAuthSession } from '../../../../common/get-server-session';
+import prisma from '../../../../common/server/get-prisma-client';
+import { getServerAuthSession } from '../../../../common/server/get-server-session';
 
 // POST /api/website/update/:id
 // Required fields in body: url, title, isPublic

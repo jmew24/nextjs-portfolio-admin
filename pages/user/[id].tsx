@@ -4,91 +4,17 @@ import { Session } from 'next-auth';
 import { getSession } from 'next-auth/react';
 
 import { UserProps } from '../../common/types/web';
-import prisma from '../../common/get-prisma-client';
-import { isAdmin } from '../../common/get-user-access';
+import prisma from '../../common/server/get-prisma-client';
+import { isAdmin } from '../../common/server/get-user-access';
+import { getUserById } from '../../common/server/prisma-user';
 
 import Website from '../../components/Website';
 import Layout from '../../components/Layout';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
 	const {
-		res,
-		params: { id },
-	} = context;
-	const session = await getSession(context);
-
-	if (!id || typeof id !== 'string') {
-		res.writeHead(400).end('Invalid website id');
-		return;
-	}
-
-	if (isAdmin(session)) {
-		const user = await prisma.user.findUnique({
-			where: {
-				id: id,
-			},
-			select: {
-				id: true,
-				email: true,
-				firstName: true,
-				lastName: true,
-				accessLevel: true,
-				websites: {
-					select: {
-						id: true,
-						title: true,
-						url: true,
-						public: true,
-						owner: {
-							select: {
-								id: true,
-								email: true,
-								firstName: true,
-								lastName: true,
-							},
-						},
-					},
-				},
-			},
-		});
-
-		return {
-			props: { user, session },
-		};
-	}
-
-	const user = await prisma.user.findUnique({
-		where: {
-			id: id,
-		},
-		select: {
-			id: true,
-			email: true,
-			firstName: true,
-			lastName: true,
-			accessLevel: true,
-			websites: {
-				where: {
-					public: true,
-					OR: [{ owner: { email: session.user.email } }],
-				},
-				select: {
-					id: true,
-					title: true,
-					url: true,
-					public: true,
-					owner: {
-						select: {
-							id: true,
-							email: true,
-							firstName: true,
-							lastName: true,
-						},
-					},
-				},
-			},
-		},
-	});
+		props: { user, session },
+	} = await getUserById(context);
 
 	return {
 		props: { user, session },

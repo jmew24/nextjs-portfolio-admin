@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from 'next-auth/react';
 
-import prisma from '../../../common/get-prisma-client';
+import prisma from '../../../common/server/get-prisma-client';
 
 // POST /api/website
 // Required fields in body: url, title, isPublic

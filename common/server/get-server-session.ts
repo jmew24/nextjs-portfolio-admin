@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from 'next';
 import { unstable_getServerSession } from 'next-auth';
 
-import { authOptions } from '../pages/api/auth/[...nextauth]';
+import { authOptions } from '../../pages/api/auth/[...nextauth]';
 
 export const getServerAuthSession = async (context: {
 	req: GetServerSidePropsContext['req'];

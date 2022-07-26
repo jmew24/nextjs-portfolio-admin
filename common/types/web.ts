@@ -9,7 +9,7 @@ export enum AccessLevel {
 
 export type UserProps = {
 	id: string;
-	email: string;
+	email: string | null;
 	firstName: string | null;
 	lastName: string | null;
 	password: string | null;

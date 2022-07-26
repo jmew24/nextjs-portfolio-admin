@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import { getSession } from 'next-auth/react';
 
 import { WebsiteProps } from '../../common/types/web';
-import prisma from '../../common/get-prisma-client';
+import prisma from '../../common/server/get-prisma-client';
 
 import Layout from '../../components/Layout';
 
