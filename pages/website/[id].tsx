@@ -5,50 +5,28 @@ import ReactMarkdown from 'react-markdown';
 import Router from 'next/router';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { getSession } from 'next-auth/react';
 
 import { WebsiteProps } from '../../common/types/web';
-import prisma from '../../common/server/get-prisma-client';
+import { getWebsiteById } from '../../common/server/get-prisma-website';
 
 import Layout from '../../components/Layout';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+	const { res } = context;
 	const {
-		req,
-		res,
-		params: { id },
-	} = context;
-	const session = await getSession(context);
+		props: { website, session },
+	} = await getWebsiteById(context);
 
-	if (!id || typeof id !== 'string') {
+	if (!website) {
 		res.writeHead(400).end('Invalid website id');
 		return;
 	}
 
-	if (!session) {
+	if (!session || session?.status === 'unauthenticated') {
 		res.writeHead(401).end('Unauthorized');
 		return;
 	}
 
-	const website = await prisma.website.findUnique({
-		where: {
-			id: id,
-		},
-		select: {
-			id: true,
-			title: true,
-			url: true,
-			public: true,
-			owner: {
-				select: {
-					id: true,
-					email: true,
-					firstName: true,
-					lastName: true,
-				},
-			},
-		},
-	});
 	return {
 		props: { website, session },
 	};

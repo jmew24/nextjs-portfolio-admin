@@ -1,12 +1,9 @@
 import React from 'react';
 import { GetServerSideProps } from 'next';
 import { Session } from 'next-auth';
-import { getSession } from 'next-auth/react';
 
 import { UserProps } from '../../common/types/web';
-import prisma from '../../common/server/get-prisma-client';
-import { isAdmin } from '../../common/server/get-user-access';
-import { getUserById } from '../../common/server/prisma-user';
+import { getUserById } from '../../common/server/get-prisma-user';
 
 import Website from '../../components/Website';
 import Layout from '../../components/Layout';

@@ -1,16 +1,61 @@
 import { GetServerSidePropsContext } from 'next';
-import { getSession } from 'next-auth/react';
+
+import { AccessLevel } from '../types/web';
 
 import { prisma } from './get-prisma-client';
 import { getServerAuthSession } from './get-server-session';
-import { isAdmin } from './get-user-access';
+
+export const getUserAccess = async (context?: GetServerSidePropsContext) => {
+	const session = await getServerAuthSession(context);
+
+	if (!session) {
+		return {
+			props: { accessLevel: AccessLevel.GUEST, session: undefined },
+		};
+	}
+
+	const user = await prisma.user.findFirst({
+		where: {
+			email: session?.user?.email,
+		},
+		select: {
+			accessLevel: true,
+		},
+	});
+
+	return {
+		props: { accessLevel: user?.accessLevel ?? AccessLevel.GUEST, session: session },
+	};
+};
+
+export const getUserIsAdmin = async (context: GetServerSidePropsContext) => {
+	const {
+		props: { accessLevel, session },
+	} = await getUserAccess(context);
+
+	if (!session) {
+		return {
+			props: { isAdmin: false, session: undefined },
+		};
+	}
+
+	switch (AccessLevel[accessLevel]) {
+		case AccessLevel.ROOT:
+		case AccessLevel.ADMIN:
+			return {
+				props: { isAdmin: true, session: session },
+			};
+		default:
+			return {
+				props: { isAdmin: false, session: session },
+			};
+	}
+};
 
 export const getUsers = async (context: GetServerSidePropsContext) => {
-	const session = await getServerAuthSession(context);
-	const session2 = await getSession(context);
-	console.log('prisma-user.ts getManyUsers');
-	console.log('getServerAuthSession', session);
-	console.log('getSession', session2);
+	const {
+		props: { isAdmin, session },
+	} = await getUserIsAdmin(context);
 
 	if (!session) {
 		return {
@@ -18,7 +63,7 @@ export const getUsers = async (context: GetServerSidePropsContext) => {
 		};
 	}
 
-	if (isAdmin(session)) {
+	if (isAdmin) {
 		const users = await prisma.user.findMany({
 			select: {
 				id: true,
@@ -89,10 +134,6 @@ export const getUsers = async (context: GetServerSidePropsContext) => {
 
 export const getUser = async (context: GetServerSidePropsContext) => {
 	const session = await getServerAuthSession(context);
-	const session2 = await getSession(context);
-	console.log('prisma-user.ts getUser');
-	console.log('getServerAuthSession', session);
-	console.log('getSession', session2);
 
 	if (!session) {
 		return {
@@ -138,11 +179,9 @@ export const getUserById = async (context: GetServerSidePropsContext) => {
 		res,
 		params: { id },
 	} = context;
-	const session = await getServerAuthSession(context);
-	const session2 = await getSession(context);
-	console.log('prisma-website.ts getWebsite');
-	console.log('getServerAuthSession', session);
-	console.log('getSession', session2);
+	const {
+		props: { isAdmin, session },
+	} = await getUserIsAdmin(context);
 
 	if (!id || typeof id !== 'string') {
 		res.writeHead(400).end('Invalid website id');
@@ -155,8 +194,8 @@ export const getUserById = async (context: GetServerSidePropsContext) => {
 		};
 	}
 
-	if (isAdmin(session)) {
-		const user = await prisma.user.findUnique({
+	if (isAdmin) {
+		const user = await prisma.user.findFirst({
 			where: {
 				id: id,
 			},
@@ -190,7 +229,7 @@ export const getUserById = async (context: GetServerSidePropsContext) => {
 		};
 	}
 
-	const user = await prisma.user.findUnique({
+	const user = await prisma.user.findFirst({
 		where: {
 			id: id,
 			email: session.user.email,
@@ -228,13 +267,11 @@ export const getUserById = async (context: GetServerSidePropsContext) => {
 };
 
 export const getUserByEmail = async (context: GetServerSidePropsContext, email: string) => {
-	const session = await getServerAuthSession(context);
-	const session2 = await getSession(context);
-	console.log('prisma-user.ts getUserByEmail');
-	console.log('getServerAuthSession', session);
-	console.log('getSession', session2);
+	const {
+		props: { isAdmin, session },
+	} = await getUserIsAdmin(context);
 
-	if ((session && isAdmin(session)) || session?.user?.email === email) {
+	if ((session && isAdmin) || session?.user?.email === email) {
 		const user = await prisma.user.findFirst({
 			where: {
 				email: email,
@@ -297,11 +334,9 @@ export const getUserByCredentials = async (credentials: Record<'email' | 'passwo
 };
 
 export const getUserWebsites = async (context: GetServerSidePropsContext, userId: string) => {
-	const session = await getServerAuthSession(context);
-	const session2 = await getSession(context);
-	console.log('prisma-user.ts getUserWebsites');
-	console.log('getServerAuthSession', session);
-	console.log('getSession', session2);
+	const {
+		props: { isAdmin, session },
+	} = await getUserIsAdmin(context);
 
 	if (!session) {
 		return {
@@ -309,7 +344,7 @@ export const getUserWebsites = async (context: GetServerSidePropsContext, userId
 		};
 	}
 
-	if (isAdmin(session)) {
+	if (isAdmin) {
 		const websites = await prisma.website.findMany({
 			where: {
 				owner: {
@@ -363,13 +398,11 @@ export const getUserWebsites = async (context: GetServerSidePropsContext, userId
 };
 
 export const getUserWebsitesByEmail = async (context: GetServerSidePropsContext, email: string) => {
-	const session = await getServerAuthSession(context);
-	const session2 = await getSession(context);
-	console.log('prisma-user.ts getUserWebsitesByEmail');
-	console.log('getServerAuthSession', session);
-	console.log('getSession', session2);
+	const {
+		props: { isAdmin, session },
+	} = await getUserIsAdmin(context);
 
-	if ((session && isAdmin(session)) || session?.user?.email === email) {
+	if ((session && isAdmin) || session?.user?.email === email) {
 		const websites = await prisma.website.findMany({
 			where: {
 				owner: {

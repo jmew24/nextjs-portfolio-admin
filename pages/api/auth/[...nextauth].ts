@@ -1,11 +1,11 @@
-import NextAuth, { NextAuthOptions } from 'next-auth';
+import NextAuth, { NextAuthOptions, User } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 
 import { prisma } from '../../../common/server/get-prisma-client';
-import { getUserByCredentials } from '../../../common/server/prisma-user';
+import { getUserByCredentials } from '../../../common/server/get-prisma-user';
 
 export const getHash = async (password: string) => {
 	const salt = await bcrypt.genSalt();
@@ -94,16 +94,17 @@ export const authOptions: NextAuthOptions = {
 		async jwt({ token, user }) {
 			const isUserSignedIn = user ? true : false;
 			if (isUserSignedIn) {
-				token.id = user.id.toString();
-				token.user = user;
+				token.id = user.id;
+				token.user = user as User;
 			}
+
 			return token;
 		},
 		async session({ session, user, token }) {
 			const isUserSignedIn = user ? true : false;
 			if (isUserSignedIn) {
 				const encodedToken = jwt.sign(token, process.env.SECRET, { algorithm: 'HS256' });
-				session.id = token.id;
+				session.id = token?.id;
 				session.token = encodedToken;
 				prisma.session.upsert({
 					where: {
@@ -122,7 +123,7 @@ export const authOptions: NextAuthOptions = {
 					},
 				});
 			}
-			if (token.user) session.user = token.user as any;
+			if (token.user) session.user = token.user as User;
 			else if (user) session.user = user;
 
 			return session;
@@ -140,7 +141,7 @@ export const authOptions: NextAuthOptions = {
 		},
 	},
 	theme: {
-		colorScheme: 'dark', // "auto" | "dark" | "light"
+		colorScheme: 'dark',
 	},
 };
 

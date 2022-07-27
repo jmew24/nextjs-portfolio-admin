@@ -3,7 +3,7 @@ import type { GetServerSideProps } from 'next';
 import { Session } from 'next-auth';
 
 import { UserProps } from '../common/types/web';
-import { getUsers } from '../common/server/prisma-user';
+import { getUsers } from '../common/server/get-prisma-user';
 
 import Layout from '../components/Layout';
 import User from '../components/User';
